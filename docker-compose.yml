@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: fms_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fms_user
+      POSTGRES_PASSWORD: fms_password
+      POSTGRES_DB: fms_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - fms_pg_data:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fms_user -d fms_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  fms_pg_data:
