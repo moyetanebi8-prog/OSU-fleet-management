@@ -36,3 +36,5 @@ Thumbs.db
 # Database / local data
 postgres-data/
 
+
+simulator/simulator_backup.py

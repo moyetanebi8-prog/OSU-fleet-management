@@ -8,8 +8,9 @@ import * as tripRequestService from "../services/tripRequestService";
 export default function CreateTripRequestModal({ onClose, onCreated }) {
   const { user } = useAuth();
 
-  const [purpose, setPurpose] = useState("");
-  const [destination, setDestination] = useState("");
+ const [purpose, setPurpose] = useState("");
+const [source, setSource] = useState("");
+const [destination, setDestination] = useState("");
   const [travelerIds, setTravelerIds] = useState([]); // OTHER travelers - requester is implicit
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
@@ -32,12 +33,17 @@ export default function CreateTripRequestModal({ onClose, onCreated }) {
     setSubmitting(true);
     try {
       const created = await tripRequestService.createTripRequest({
-        purpose,
-        destination,
-        travelerIds,
-        requestedStart: new Date(start).toISOString(),
-        requestedEnd: new Date(end).toISOString(),
-      });
+  purpose,
+  source,
+  sourceLat: null,
+  sourceLng: null,
+  destination,
+  destinationLat: null,
+  destinationLng: null,
+  travelerIds,
+  requestedStart: new Date(start).toISOString(),
+  requestedEnd: new Date(end).toISOString(),
+});
       onCreated(created);
     } catch (err) {
       setError(getErrorMessage(err, "Could not submit your request."));
@@ -60,7 +66,16 @@ export default function CreateTripRequestModal({ onClose, onCreated }) {
             autoFocus
           />
         </label>
-
+<label>
+  Source
+  <input
+    type="text"
+    value={source}
+    onChange={(e) => setSource(e.target.value)}
+    placeholder="e.g. Batu"
+    required
+  />
+</label>
         <label>
           Destination
           <input

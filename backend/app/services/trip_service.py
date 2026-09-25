@@ -323,64 +323,83 @@ def create_trip_request_with_travelers(
     requester: User,
     *,
     purpose: str,
+    source: str,
+    source_lat: float | None,
+    source_lng: float | None,
     destination: str,
+    destination_lat: float | None,
+    destination_lng: float | None,
     requested_start: datetime,
     requested_end: datetime,
     traveler_ids: list[int],
 ) -> TripRequest:
     """
-    Creates a TripRequest AND its traveler rows in one transaction.
-    `passenger_count` is never trusted from the client - it's set here,
-    equal to the final traveler count, after validation.
+    Creates a TripRequest and its traveler rows in one transaction.
 
-    Rules enforced (feature spec sections 1, 3, 11):
-    - The requester is automatically a traveler, whether or not their own
-      id appears in `traveler_ids` - the caller (router) should only ever
-      pass the OTHER travelers here, but this is defensive either way.
-    - Every id in `traveler_ids` must reference an existing, active,
-      `requester`-role User - "employee" in this system means that, since
-      there's no separate employee directory. A dispatcher id, an inactive
-      account, or a nonexistent id is rejected outright, not silently
-      dropped.
-    - Duplicates (including the requester appearing twice) collapse to one
-      row each - enforced both here (a Python set) and at the database
-      level (UniqueConstraint on trip_request_travelers).
+    The source and destination are supplied by the requester.
+    Their coordinates are supplied by the geocoding service.
+    No route or location is hard-coded.
     """
+
     unique_traveler_ids = set(traveler_ids)
     unique_traveler_ids.add(requester.id)
 
-    travelers = db.query(User).filter(User.id.in_(unique_traveler_ids)).all()
+    travelers = (
+        db.query(User)
+        .filter(User.id.in_(unique_traveler_ids))
+        .all()
+    )
+
     found_ids = {u.id for u in travelers}
     missing_ids = unique_traveler_ids - found_ids
+
     if missing_ids:
-        raise NotFoundError(f"Traveler id(s) not found: {sorted(missing_ids)}.")
+        raise NotFoundError(
+            f"Traveler id(s) not found: {sorted(missing_ids)}."
+        )
 
     for traveler in travelers:
         if traveler.id == requester.id:
-            continue  # the requester is always allowed to travel on their own request
+            continue
+
         if not traveler.is_active:
-            raise InvalidStateError(f"'{traveler.username}' is not an active account and cannot be selected.")
+            raise InvalidStateError(
+                f"'{traveler.username}' is not an active account "
+                "and cannot be selected."
+            )
+
         if traveler.role != UserRole.REQUESTER:
             raise InvalidStateError(
-                f"'{traveler.username}' is a dispatcher account, not an employee, and cannot be "
-                "selected as a traveler."
+                f"'{traveler.username}' is a dispatcher account, "
+                "not an employee, and cannot be selected as a traveler."
             )
 
     trip_request = TripRequest(
-        requester_id=requester.id,
-        purpose=purpose,
-        destination=destination,
-        requested_start=requested_start,
-        requested_end=requested_end,
-        passenger_count=len(unique_traveler_ids),
-        status=TripRequestStatus.PENDING,
-    )
+    requester_id=requester.id,
+    purpose=purpose,
+    source=source,
+    source_lat=source_lat,
+    source_lng=source_lng,
+    destination=destination,
+    destination_lat=destination_lat,
+    destination_lng=destination_lng,
+    requested_start=requested_start,
+    requested_end=requested_end,
+    status=TripRequestStatus.PENDING,
+)
     db.add(trip_request)
-    db.flush()  # assigns trip_request.id without ending the transaction
+    db.flush()
 
     for traveler_id in unique_traveler_ids:
-        db.add(TripRequestTraveler(trip_request_id=trip_request.id, user_id=traveler_id))
+        db.add(
+            TripRequestTraveler(
+                trip_request_id=trip_request.id,
+                user_id=traveler_id,
+            )
+        )
 
     db.commit()
     db.refresh(trip_request)
+
     return trip_request
+   

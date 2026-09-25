@@ -1,13 +1,30 @@
 import api from "./api";
 
-export async function createTripRequest({ purpose, destination, travelerIds, requestedStart, requestedEnd }) {
+export async function createTripRequest({
+  purpose,
+  source,
+  sourceLat,
+  sourceLng,
+  destination,
+  destinationLat,
+  destinationLng,
+  travelerIds,
+  requestedStart,
+  requestedEnd
+}) {
   const response = await api.post("/trip-requests/", {
     purpose,
+    source,
+    source_lat: sourceLat,
+    source_lng: sourceLng,
     destination,
+    destination_lat: destinationLat,
+    destination_lng: destinationLng,
     traveler_ids: travelerIds || [],
     requested_start: requestedStart,
     requested_end: requestedEnd,
   });
+
   return response.data;
 }
 
