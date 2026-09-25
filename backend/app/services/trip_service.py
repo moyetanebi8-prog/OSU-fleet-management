@@ -210,8 +210,24 @@ def decline_trip_request(db: Session, request_id: int, reason: str) -> TripReque
 
     db.commit()
     db.refresh(trip_request)
-    return trip_request
 
+    # Best-effort notification after rejection has already committed.
+    # A notification/email failure must never undo or block the rejection.
+    try:
+        notification_service.notify_trip_rejected(
+            db,
+            trip_request,
+            trip_request.decline_reason,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "notify_trip_rejected failed for trip request #%s "
+            "(rejection unaffected): %s",
+            trip_request.id,
+            exc,
+        )
+
+    return trip_request
 
 def get_trip_locked(db: Session, trip_id: int) -> Trip:
     trip = db.query(Trip).filter(Trip.id == trip_id).with_for_update().first()
@@ -397,9 +413,7 @@ def create_trip_request_with_travelers(
                 user_id=traveler_id,
             )
         )
-
     db.commit()
     db.refresh(trip_request)
 
     return trip_request
-   

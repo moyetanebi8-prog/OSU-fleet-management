@@ -155,3 +155,63 @@ def notify_trip_approved(db: Session, trip: Trip, trip_request: TripRequest) -> 
     for n in notifications:
         db.refresh(n)
     return notifications
+def notify_trip_rejected(
+    db: Session,
+    trip_request: TripRequest,
+    reason: str,
+) -> Notification | None:
+    """
+    Notifies the trip requester that their trip request was rejected.
+
+    The rejection reason is included in the notification.
+    The notification is best-effort and should never block the
+    already-completed rejection.
+    """
+    requester = db.get(User, trip_request.requester_id)
+
+    if requester is None:
+        logger.warning(
+            "Cannot notify rejected trip request #%s: requester not found.",
+            trip_request.id,
+        )
+        return None
+
+    if not requester.email:
+        logger.warning(
+            "Cannot notify rejected trip request #%s: requester %s has no email.",
+            trip_request.id,
+            requester.username,
+        )
+        return None
+
+    subject = f"Trip request #{trip_request.id} rejected - {trip_request.destination}"
+
+    message = (
+        f"Trip Request #{trip_request.id}\n\n"
+        f"Requester: {requester.full_name}\n\n"
+        f"Source: {trip_request.source}\n"
+        f"Destination: {trip_request.destination}\n"
+        f"Purpose: {trip_request.purpose}\n\n"
+        f"Departure: {trip_request.requested_start.isoformat()}\n"
+        f"Return: {trip_request.requested_end.isoformat()}\n\n"
+        f"Status: REJECTED\n\n"
+        f"Rejection reason:\n"
+        f"{reason}"
+    )
+
+    notification = _create_and_send(
+        db,
+        recipient_email=requester.email,
+        recipient_user_id=requester.id,
+        recipient_driver_id=None,
+        notification_type=NotificationType.TRIP_REJECTED_REQUESTER,
+        subject=subject,
+        message=message,
+        trip_request_id=trip_request.id,
+        trip_id=None,
+    )
+
+    db.commit()
+    db.refresh(notification)
+
+    return notification
