@@ -26,6 +26,7 @@ several vehicles concurrently from a single process.
 
 import argparse
 import asyncio
+from html import parser
 import math
 import os
 import random
@@ -37,6 +38,31 @@ from datetime import datetime
 import httpx
 
 DEFAULT_API_URL = "http://localhost:8000"
+
+
+def load_device_api_key() -> str | None:
+    """Load DEVICE_API_KEY from the project's backend/.env file."""
+    env_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "backend",
+        ".env",
+    )
+
+    try:
+        with open(env_path, "r", encoding="utf-8") as env_file:
+            for line in env_file:
+                line = line.strip()
+
+                if not line or line.startswith("#"):
+                    continue
+
+                if line.startswith("DEVICE_API_KEY="):
+                    return line.split("=", 1)[1].strip().strip('"').strip("'")
+
+    except FileNotFoundError:
+        pass
+
+    return os.getenv("DEVICE_API_KEY")
 EARTH_RADIUS_KM = 6371.0088
 
 
@@ -166,31 +192,68 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Simulate GPS location pings for one or more fleet vehicles."
     )
+
     parser.add_argument(
         "--vehicle-id",
         type=str,
         required=True,
         help="Vehicle ID, or comma-separated list to simulate several at once (e.g. 1,2,3).",
     )
-    parser.add_argument("--api-url", default=DEFAULT_API_URL, help=f"Backend base URL (default: {DEFAULT_API_URL})")
+
+    parser.add_argument(
+        "--api-url",
+        default=DEFAULT_API_URL,
+        help=f"Backend base URL (default: {DEFAULT_API_URL})",
+    )
+
     parser.add_argument(
         "--api-key",
-        default=os.environ.get("DEVICE_API_KEY"),
-        help="Device API key. Defaults to the DEVICE_API_KEY environment variable.",
+        default=load_device_api_key(),
+        help="Device API key. Defaults to the DEVICE_API_KEY from backend/.env.",
     )
-    parser.add_argument("--interval", type=float, default=5.0, help="Seconds between pings (default: 5)")
-    parser.add_argument("--start-lat", type=float, default=37.7749, help="Starting latitude (default: 37.7749)")
-    parser.add_argument("--start-lng", type=float, default=-122.4194, help="Starting longitude (default: -122.4194)")
-    parser.add_argument("--base-speed", type=float, default=40.0, help="Average speed in km/h (default: 40)")
+
     parser.add_argument(
-        "--speed-variance", type=float, default=15.0, help="Speed variance in km/h (default: 15)"
+        "--interval",
+        type=float,
+        default=5.0,
+        help="Seconds between pings (default: 5)",
     )
+
+    parser.add_argument(
+        "--start-lat",
+        type=float,
+        default=7.05,
+        help="Starting latitude (default: 7.05 - Ethiopia)",
+    )
+
+    parser.add_argument(
+        "--start-lng",
+        type=float,
+        default=38.50,
+        help="Starting longitude (default: 38.50 - Ethiopia)",
+    )
+
+    parser.add_argument(
+        "--base-speed",
+        type=float,
+        default=40.0,
+        help="Average speed in km/h (default: 40)",
+    )
+
+    parser.add_argument(
+        "--speed-variance",
+        type=float,
+        default=15.0,
+        help="Speed variance in km/h (default: 15)",
+    )
+
     parser.add_argument(
         "--pattern",
         choices=["random-walk", "circular"],
         default="random-walk",
         help="Movement pattern (default: random-walk)",
     )
+
     return parser.parse_args()
 
 

@@ -3,6 +3,10 @@ import AdminLayout from "../layouts/AdminLayout";
 import DashboardLayout from "../layouts/DashboardLayout";
 import DispatcherLayout from "../layouts/DispatcherLayout";
 import Login from "../pages/Login";
+import Profile from "../pages/Profile";
+import MyAccount from "../pages/MyAccount";
+import Settings from "../pages/Settings";
+import ChangePassword from "../pages/ChangePassword";
 import NotFound from "../pages/NotFound";
 import RequesterDashboard from "../pages/RequesterDashboard";
 import TripDetails from "../pages/TripDetails";
@@ -32,6 +36,41 @@ export default function AppRouter() {
       <Route path="/login" element={<Login />} />
 
       <Route element={<DashboardLayout />}>
+      <Route
+  path="/profile"
+  element={
+    <ProtectedRoute>
+      <Profile />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/account"
+  element={
+    <ProtectedRoute>
+      <MyAccount />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/settings"
+  element={
+    <ProtectedRoute>
+      <Settings />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/change-password"
+  element={
+    <ProtectedRoute>
+      <ChangePassword />
+    </ProtectedRoute>
+  }
+/>
         <Route
           path="/requester"
           element={

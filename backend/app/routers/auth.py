@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies.auth import get_current_user
 from app.models.user import User
-from app.schemas.auth import TokenResponse, UserResponse
-from app.services.auth import authenticate_user, create_access_token
+from app.schemas.auth import PasswordChange, TokenResponse, UserResponse
+from app.services.auth import authenticate_user, create_access_token, hash_password, verify_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -47,3 +47,37 @@ def login(
 @router.get("/me", response_model=UserResponse)
 def me(current_user: User = Depends(get_current_user)) -> User:
     return current_user
+@router.post("/change-password")
+def change_password(
+    payload: PasswordChange,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict[str, str]:
+    if not verify_password(payload.current_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect.",
+        )
+
+    if payload.new_password != payload.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password and confirmation password do not match.",
+        )
+
+    if len(payload.new_password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be at least 8 characters long.",
+        )
+
+    if verify_password(payload.new_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be different from the current password.",
+        )
+
+    current_user.password_hash = hash_password(payload.new_password)
+    db.commit()
+
+    return {"message": "Password changed successfully."}

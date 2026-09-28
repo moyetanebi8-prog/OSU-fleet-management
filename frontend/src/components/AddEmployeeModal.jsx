@@ -7,17 +7,43 @@ export default function AddEmployeeModal({ onClose, onCreated }) {
   const [username, setUsername] = useState("");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [role, setRole] = useState("requester");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState(null); // set after successful creation
+  const [result, setResult] = useState(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
+
     try {
-      const created = await adminService.createEmployee({ username, fullName, email, password });
+      let created;
+
+      if (role === "requester") {
+        created = await adminService.createEmployee({
+          username,
+          fullName,
+          email,
+          password,
+        });
+      } else {
+        if (!password) {
+          setError("A password is required for admin and dispatcher accounts.");
+          setSubmitting(false);
+          return;
+        }
+
+        created = await adminService.createDispatcherOrAdminAccount({
+          username,
+          fullName,
+          email,
+          password,
+          role,
+        });
+      }
+
       setResult(created);
     } catch (err) {
       setError(getErrorMessage(err, "Could not create this employee."));
@@ -32,25 +58,39 @@ export default function AddEmployeeModal({ onClose, onCreated }) {
 
   if (result) {
     return (
-      <Modal title="Employee created" onClose={handleDone}>
+      <Modal title="Account created" onClose={handleDone}>
         <p>
-          <strong>{result.full_name}</strong> ({result.username}) has been added.
+          <strong>{result.full_name}</strong> ({result.username}) has been
+          added as a <strong>{result.role}</strong>.
         </p>
+
         {result.temporary_password && (
           <div className="temp-password-box">
             <p className="traveler-hint">
-              One-time temporary password - record this now, it will not be shown again:
+              One-time temporary password - record this now, it will not be
+              shown again:
             </p>
-            <code className="temp-password-value">{result.temporary_password}</code>
+
+            <code className="temp-password-value">
+              {result.temporary_password}
+            </code>
           </div>
         )}
-        <p className="traveler-hint">
-          {result.onboarding_email_sent
-            ? "An onboarding email with these credentials was also sent."
-            : "No onboarding email was sent (SMTP may not be configured) - relay the credentials directly."}
-        </p>
+
+        {result.onboarding_email_sent !== undefined && (
+          <p className="traveler-hint">
+            {result.onboarding_email_sent
+              ? "An onboarding email with these credentials was also sent."
+              : "No onboarding email was sent - relay the credentials directly."}
+          </p>
+        )}
+
         <div className="modal-actions">
-          <button type="button" className="btn btn-primary" onClick={handleDone}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={handleDone}
+          >
             Done
           </button>
         </div>
@@ -59,39 +99,85 @@ export default function AddEmployeeModal({ onClose, onCreated }) {
   }
 
   return (
-    <Modal title="Add employee" onClose={onClose}>
+    <Modal title="Add employee account" onClose={onClose}>
       <form onSubmit={handleSubmit} className="stacked-form">
         <label>
           Full name
-          <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} required autoFocus />
+          <input
+            type="text"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            required
+            autoFocus
+          />
         </label>
+
         <label>
           Username
-          <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required minLength={3} />
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            minLength={3}
+          />
         </label>
+
         <label>
           Email
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
         </label>
+
         <label>
-          Password (optional)
+          Role
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+          >
+            <option value="requester">Requester</option>
+            <option value="dispatcher">Dispatcher</option>
+            <option value="admin">Admin</option>
+          </select>
+        </label>
+
+        <label>
+          Password
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Leave blank to auto-generate one"
+            placeholder={
+              role === "requester"
+                ? "Leave blank to auto-generate one"
+                : "Required for this role"
+            }
             minLength={8}
+            required={role !== "requester"}
           />
         </label>
 
         {error && <p className="form-error">{error}</p>}
 
         <div className="modal-actions">
-          <button type="button" className="btn btn-secondary" onClick={onClose}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={onClose}
+          >
             Cancel
           </button>
-          <button type="submit" className="btn btn-primary" disabled={submitting}>
-            {submitting ? "Creating…" : "Create employee"}
+
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={submitting}
+          >
+            {submitting ? "Creating…" : "Create account"}
           </button>
         </div>
       </form>
