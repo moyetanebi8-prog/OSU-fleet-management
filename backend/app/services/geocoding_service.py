@@ -29,18 +29,21 @@ async def geocode_location(location: str) -> tuple[float, float]:
         raise GeocodingError("Location cannot be empty.")
 
     params = {
-        "q": location,
+        "q": f"{location}, Ethiopia",
         "format": "jsonv2",
         "limit": 1,
+        "countrycodes": "et",
     }
 
     headers = {
         "User-Agent": USER_AGENT,
         "Accept": "application/json",
     }
-
+   
+   
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
+           
+      async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(
                 NOMINATIM_URL,
                 params=params,

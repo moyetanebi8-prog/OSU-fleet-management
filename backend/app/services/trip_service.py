@@ -238,14 +238,13 @@ def get_trip_locked(db: Session, trip_id: int) -> Trip:
 
 def start_trip(db: Session, trip_id: int) -> Trip:
     """
-    Only an Approved trip can start (spec section 14). The start position is
-    NOT fabricated and NOT pulled from arbitrary vehicle history - it's the
-    vehicle's most recent LocationPing at the moment of starting. That
-    specific ping is then tagged with this trip's id, marking it as the
-    first point of the trip's own route (the rest of the route accumulates
-    via the GPS ingestion pipeline in Phase 8/9, which attaches every
-    subsequent ping for this vehicle to this trip while it stays
-    `in_progress`).
+    Start an approved trip from the source location supplied by the
+    original trip request.
+
+    The requester's source coordinates are the authoritative starting
+    point
+    for the trip. The vehicle's previous GPS history must not be used as
+    the starting location for a new trip.
     """
     trip = get_trip_locked(db, trip_id)
 
@@ -254,37 +253,53 @@ def start_trip(db: Session, trip_id: int) -> Trip:
             f"Trip is '{trip.status.value}'; only approved trips can be started."
         )
 
-    latest_ping = (
-        db.query(LocationPing)
-        .filter(LocationPing.vehicle_id == trip.vehicle_id)
-        # id as a tiebreaker: timestamps can tie (identical GPS ping
-        # bursts, or - as in the test suite - multiple inserts within the
-        # same DB transaction where func.now() is fixed for the whole
-        # transaction), so ordering by timestamp alone isn't deterministic.
-        .order_by(LocationPing.timestamp.desc(), LocationPing.id.desc())
-        .first()
-    )
-    if latest_ping is None:
+    trip_request = trip.request
+
+    if trip_request is None:
+        raise NotFoundError("Trip request not found.")
+
+    if trip_request.source_lat is None or trip_request.source_lng is None:
         raise ConflictError(
-            "No GPS location has been reported for this vehicle yet; "
-            "it must send at least one location ping before its trip can start."
+            "The trip request does not have valid source coordinates; "
+            "the trip cannot be started."
         )
 
-    vehicle = db.query(Vehicle).filter(Vehicle.id == trip.vehicle_id).with_for_update().first()
-    driver = db.query(Driver).filter(Driver.id == trip.driver_id).with_for_update().first()
+    vehicle = (
+        db.query(Vehicle)
+        .filter(Vehicle.id == trip.vehicle_id)
+        .with_for_update()
+        .first()
+    )
+
+    driver = (
+        db.query(Driver)
+        .filter(Driver.id == trip.driver_id)
+        .with_for_update()
+        .first()
+    )
+
+    if vehicle is None:
+        raise NotFoundError("Vehicle not found.")
+
+    if driver is None:
+        raise NotFoundError("Driver not found.")
 
     trip.status = TripStatus.IN_PROGRESS
     trip.actual_start_time = datetime.now(timezone.utc)
-    trip.start_lat = latest_ping.lat
-    trip.start_lng = latest_ping.lng
-    latest_ping.trip_id = trip.id
+
+    # The requester's selected source is the authoritative
+    # starting location for this trip.
+    trip.start_lat = trip_request.source_lat
+    trip.start_lng = trip_request.source_lng
 
     vehicle.status = VehicleStatus.IN_PROGRESS
     driver.status = DriverStatus.DRIVING
 
     db.commit()
     db.refresh(trip)
+
     return trip
+
 
 
 def complete_trip(db: Session, trip_id: int) -> Trip:
