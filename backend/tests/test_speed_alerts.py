@@ -2,6 +2,22 @@ from app.config import settings
 from app.models.alert import Alert
 from app.models.enums import AlertType
 
+import pytest
+
+@pytest.fixture(autouse=True)
+def mock_geocoding(monkeypatch):
+    async def fake_geocode_location(location: str):
+        if location == "Test source":
+            return 0.5, 0.5
+        if location == "test destination":
+            return 5.0, 5.0
+        raise AssertionError(f"Unexpected location: {location}")
+
+    monkeypatch.setattr(
+        "app.routers.trip_requests.geocode_location",
+        fake_geocode_location,
+    )
+
 DEVICE_HEADERS = {"X-Device-API-Key": settings.DEVICE_API_KEY}
 LIMIT = settings.DEFAULT_SPEED_LIMIT_KMH
 
@@ -89,13 +105,15 @@ def test_speeding_alert_associated_with_active_trip(
         "/api/v1/trip-requests/",
         json={
             "purpose": "Run",
-            "destination": "Site",
+            "source": "Test source",
+            "destination": "test destination",
             "traveler_ids": [],
             "requested_start": start.isoformat(),
             "requested_end": end.isoformat(),
         },
         headers=requester_headers,
     )
+    
     request_id = request_resp.json()["id"]
     vehicle_id = _create_vehicle(client, dispatcher_headers, "SPD-006")
     driver_resp = client.post(

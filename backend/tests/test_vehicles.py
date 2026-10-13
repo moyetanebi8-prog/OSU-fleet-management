@@ -1,7 +1,22 @@
+import pytest
+
 from app.models.enums import VehicleStatus
 from app.models.vehicle import Vehicle
 
 
+@pytest.fixture(autouse=True)
+def mock_geocoding(monkeypatch):
+    async def fake_geocode_location(location: str):
+        if location == "Test source":
+            return 0.5, 0.5
+        if location == "Somewhere":
+            return 5.0, 5.0
+        raise AssertionError(f"Unexpected location: {location}")
+
+    monkeypatch.setattr(
+        "app.routers.trip_requests.geocode_location",
+        fake_geocode_location,
+    )
 def test_create_vehicle_requires_authentication(client):
     response = client.post(
         "/api/v1/vehicles/", json={"name": "Van 1", "plate_number": "AA-111", "capacity": 8}
@@ -223,6 +238,7 @@ def test_delete_vehicle_with_trip_history_returns_409(client, dispatcher_headers
         "/api/v1/trip-requests/",
         json={
             "purpose": "History test",
+            "source": "Test source",
             "destination": "Somewhere",
             "traveler_ids": [],
             "requested_start": start.isoformat(),

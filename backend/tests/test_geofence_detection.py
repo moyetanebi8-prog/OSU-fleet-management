@@ -160,46 +160,78 @@ def test_inactive_geofence_is_ignored(client, dispatcher_headers, db_session):
 
 
 def test_alert_is_associated_with_active_trip_when_present(
-    client, dispatcher_headers, requester_headers, db_session
+    client, dispatcher_headers, requester_headers, db_session, monkeypatch
 ):
     from datetime import datetime, timedelta, timezone
+
+    async def fake_geocode_location(location: str):
+        if location == "test source":
+            return 0.5, 0.5
+        if location == "test destination":
+            return 5.0, 5.0
+        raise AssertionError(f"Unexpected location: {location}")
+
+    monkeypatch.setattr(
+        "app.routers.trip_requests.geocode_location",
+        fake_geocode_location,
+    )
 
     _create_geofence(client, dispatcher_headers, "Depot H")
 
     start = datetime.now(timezone.utc) + timedelta(hours=1)
     end = start + timedelta(hours=2)
+
     request_resp = client.post(
         "/api/v1/trip-requests/",
         json={
             "purpose": "Run",
-            "destination": "Site",
+            "source": "test source",
+            "destination": "test destination",
             "traveler_ids": [],
             "requested_start": start.isoformat(),
             "requested_end": end.isoformat(),
         },
         headers=requester_headers,
     )
+
     request_id = request_resp.json()["id"]
+
     vehicle_id = _create_vehicle(client, dispatcher_headers, "GEO-008")
+
     driver_resp = client.post(
         "/api/v1/drivers/",
-        json={"name": "Driver GEO-008", "license_number": "DL-GEO-008"},
+        json={
+            "name": "Driver GEO-008",
+            "license_number": "DL-GEO-008",
+        },
         headers=dispatcher_headers,
     )
+
     driver_id = driver_resp.json()["id"]
+
     approve = client.post(
         f"/api/v1/trip-requests/{request_id}/approve",
-        json={"vehicle_id": vehicle_id, "driver_id": driver_id},
+        json={
+            "vehicle_id": vehicle_id,
+            "driver_id": driver_id,
+        },
         headers=dispatcher_headers,
     )
+
     trip_id = approve.json()["id"]
 
-    _ping(client, vehicle_id, **OUTSIDE)  # starting position, outside geofence
-    start_resp = client.post(f"/api/v1/trips/{trip_id}/start", headers=dispatcher_headers)
+    _ping(client, vehicle_id, **OUTSIDE)
+
+    start_resp = client.post(
+        f"/api/v1/trips/{trip_id}/start",
+        headers=dispatcher_headers,
+    )
+
     assert start_resp.status_code == 200
 
-    _ping(client, vehicle_id, **INSIDE)  # now drives into the geofence mid-trip
+    _ping(client, vehicle_id, **INSIDE)
 
     alerts = _alerts_for_vehicle(db_session, vehicle_id)
+
     assert len(alerts) == 1
     assert alerts[0].trip_id == trip_id

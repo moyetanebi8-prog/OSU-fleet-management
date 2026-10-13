@@ -1,6 +1,8 @@
 import itertools
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from app.models.driver import Driver
 from app.models.enums import DriverStatus, TripRequestStatus, TripStatus, VehicleStatus
 from app.models.trip import Trip
@@ -8,6 +10,21 @@ from app.models.trip_request import TripRequest
 from app.models.vehicle import Vehicle
 
 _dummy_traveler_counter = itertools.count(1)
+
+
+@pytest.fixture(autouse=True)
+def mock_geocoding(monkeypatch):
+    async def fake_geocode_location(location: str):
+        if location == "Test source":
+            return 0.5, 0.5
+        if location == "Downtown":
+            return 5.0, 5.0
+        raise AssertionError(f"Unexpected location: {location}")
+
+    monkeypatch.setattr(
+        "app.routers.trip_requests.geocode_location",
+        fake_geocode_location,
+    )
 
 
 def _window(hours_ahead: int = 24, duration_hours: int = 2):
@@ -44,6 +61,7 @@ def _request_payload(traveler_ids: list[int] | None, hours_ahead: int, duration_
     start, end = _window(hours_ahead, duration_hours)
     return {
         "purpose": "Client visit",
+        "source": "Test source",
         "destination": "Downtown",
         "traveler_ids": traveler_ids or [],
         "requested_start": start.isoformat(),

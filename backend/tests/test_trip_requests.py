@@ -1,5 +1,19 @@
+import pytest
 from datetime import datetime, timedelta, timezone
 
+@pytest.fixture(autouse=True)
+def mock_geocoding(monkeypatch):
+    async def fake_geocode_location(location: str):
+        if location == "Test source":
+            return 0.5, 0.5
+        if location == "Downtown office":
+            return 5.0, 5.0
+        raise AssertionError(f"Unexpected location: {location}")
+
+    monkeypatch.setattr(
+        "app.routers.trip_requests.geocode_location",
+        fake_geocode_location,
+    )
 
 def _register_and_login(client, admin_headers, username: str) -> dict:
     """Creates an additional employee account via the real admin-employee
@@ -34,6 +48,7 @@ def _base_payload(**overrides) -> dict:
     # requester (passenger_count=1) if none are given.
     payload = {
         "purpose": "Client site visit",
+        "source": "Test source",
         "destination": "Downtown office",
         "traveler_ids": [],
         **_future_window(),

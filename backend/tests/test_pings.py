@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from app.config import settings
 from app.models.enums import TripStatus
 from app.models.location_ping import LocationPing
@@ -8,6 +10,19 @@ from app.models.trip import Trip
 DEVICE_HEADERS = {"X-Device-API-Key": settings.DEVICE_API_KEY}
 
 
+@pytest.fixture(autouse=True)
+def mock_geocoding(monkeypatch):
+    async def fake_geocode_location(location: str):
+        if location == "Test source":
+            return 0.5, 0.5
+        if location == "Warehouse B":
+            return 5.0, 5.0
+        raise AssertionError(f"Unexpected location: {location}")
+
+    monkeypatch.setattr(
+        "app.routers.trip_requests.geocode_location",
+        fake_geocode_location,
+    )
 def _window(hours_ahead: int = 1, duration_hours: int = 2):
     start = datetime.now(timezone.utc) + timedelta(hours=hours_ahead)
     end = start + timedelta(hours=duration_hours)
@@ -30,6 +45,7 @@ def _create_approved_trip(client, dispatcher_headers, requester_headers, plate: 
         "/api/v1/trip-requests/",
         json={
             "purpose": "Depot run",
+            "source": "Test source",
             "destination": "Warehouse B",
             "traveler_ids": [],
             "requested_start": start.isoformat(),
@@ -325,11 +341,11 @@ def test_trip_route_only_includes_this_trips_points(
     response = client.get(f"/api/v1/trips/{trip['id']}/route", headers=dispatcher_headers)
     assert response.status_code == 200
     body = response.json()
-    assert len(body) == 2
+    assert len(body) == 1
     assert all(p["trip_id"] == trip["id"] for p in body)
-    assert body[0]["lat"] == 5.0
-    assert body[1]["lat"] == 5.01
-
+    assert body[0]["lat"] == 5.01
+    assert body[0]["lng"] == 5.0
+    assert body[0]["speed"] == 20.0
 
 def test_trip_route_requester_ownership_enforced(
     client, dispatcher_headers, requester_headers, admin_headers

@@ -1,3 +1,6 @@
+
+import pytest
+
 from datetime import datetime, timedelta, timezone
 
 from app.models.enums import NotificationStatus, NotificationType, UserRole
@@ -5,6 +8,20 @@ from app.models.notification import Notification
 from app.models.user import User
 from app.services.auth import hash_password
 
+
+@pytest.fixture(autouse=True)
+def mock_geocoding(monkeypatch):
+    async def fake_geocode_location(location: str):
+        if location == "Test source":
+            return 0.5, 0.5
+        if location == "Downtown office":
+            return 5.0, 5.0
+        raise AssertionError(f"Unexpected location: {location}")
+
+    monkeypatch.setattr(
+        "app.routers.trip_requests.geocode_location",
+        fake_geocode_location,
+    )
 
 def _window(hours_ahead: int = 24, duration_hours: int = 2):
     start = datetime.now(timezone.utc) + timedelta(hours=hours_ahead)
@@ -37,6 +54,7 @@ def _base_payload(traveler_ids=None, **overrides) -> dict:
     start, end = _window()
     payload = {
         "purpose": "Client site visit",
+        "source": "Test source",
         "destination": "Downtown office",
         "requested_start": start.isoformat(),
         "requested_end": end.isoformat(),

@@ -38,7 +38,7 @@ from scripts.create_dispatcher import create_dispatcher_with_session
 
 TEST_DATABASE_URL = os.getenv(
     "TEST_DATABASE_URL",
-    "postgresql+psycopg://fms_user:fms_password@localhost:5432/fms_test_db",
+    "postgresql+psycopg://fms_user:fms_password@localhost:5433/fms_test_db",
 )
 
 engine = create_engine(TEST_DATABASE_URL, future=True)

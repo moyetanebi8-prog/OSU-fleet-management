@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import json
 
 import pytest
 
@@ -15,6 +16,20 @@ def _window(hours_ahead: int = 1, duration_hours: int = 2):
     return start, end
 
 
+@pytest.fixture(autouse=True)
+def mock_geocoding(monkeypatch):
+    async def fake_geocode_location(location: str):
+        if location == "Test source":
+            return 0.5, 0.5
+        if location == "Warehouse B":
+            return 5.0, 5.0
+        raise AssertionError(f"Unexpected location: {location}")
+
+    monkeypatch.setattr(
+        "app.routers.trip_requests.geocode_location",
+        fake_geocode_location,
+    )
+
 def _create_approved_trip(client, dispatcher_headers, requester_headers, plate: str, license_no: str) -> dict:
     """Full path: request -> vehicle -> driver -> approve. Returns the
     created Trip's JSON body."""
@@ -22,8 +37,9 @@ def _create_approved_trip(client, dispatcher_headers, requester_headers, plate: 
     request_resp = client.post(
         "/api/v1/trip-requests/",
         json={
-            "purpose": "Depot run",
-            "destination": "Warehouse B",
+           "purpose": "Depot run",
+           "source": "Test source",
+           "destination": "Warehouse B",
             "traveler_ids": [],
             "requested_start": start.isoformat(),
             "requested_end": end.isoformat(),
@@ -72,11 +88,27 @@ def test_start_requires_dispatcher(client, dispatcher_headers, requester_headers
     assert response.status_code == 403
 
 
-def test_start_fails_without_any_gps_location(client, dispatcher_headers, requester_headers):
-    trip = _create_approved_trip(client, dispatcher_headers, requester_headers, "LC-002", "DL-002")
-    response = client.post(f"/api/v1/trips/{trip['id']}/start", headers=dispatcher_headers)
-    assert response.status_code == 409
+def test_start_uses_request_source_when_no_gps_location_exists(
+    client, dispatcher_headers, requester_headers
+):
+    trip = _create_approved_trip(
+        client,
+        dispatcher_headers,
+        requester_headers,
+        "LC-002",
+        "DL-002",
+    )
 
+    response = client.post(
+        f"/api/v1/trips/{trip['id']}/start",
+        headers=dispatcher_headers,
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "in_progress"
+    assert body["start_lat"] == pytest.approx(0.5)
+    assert body["start_lng"] == pytest.approx(0.5)
 
 def test_start_success_captures_gps_and_updates_statuses(
     client, dispatcher_headers, requester_headers, db_session
@@ -89,8 +121,8 @@ def test_start_success_captures_gps_and_updates_statuses(
     body = response.json()
     assert body["status"] == "in_progress"
     assert body["actual_start_time"] is not None
-    assert body["start_lat"] == pytest.approx(12.34)
-    assert body["start_lng"] == pytest.approx(56.78)
+    assert body["start_lat"] == pytest.approx(0.5)
+    assert body["start_lng"] == pytest.approx(0.5)
 
     vehicle = db_session.get(Vehicle, trip["vehicle_id"])
     driver = db_session.get(Driver, trip["driver_id"])
@@ -98,20 +130,35 @@ def test_start_success_captures_gps_and_updates_statuses(
     assert driver.status == DriverStatus.DRIVING
 
     db_session.refresh(ping)
-    assert ping.trip_id == trip["id"]
+    assert ping.trip_id is None
 
 
-def test_start_uses_most_recent_ping_not_oldest(
+def test_start_uses_request_source_not_previous_vehicle_ping(
     client, dispatcher_headers, requester_headers, db_session
 ):
-    trip = _create_approved_trip(client, dispatcher_headers, requester_headers, "LC-004", "DL-004")
-    _add_ping(db_session, trip["vehicle_id"], lat=1.0, lng=1.0)  # older
-    newest = _add_ping(db_session, trip["vehicle_id"], lat=2.0, lng=2.0)  # newer
+    trip = _create_approved_trip(
+        client,
+        dispatcher_headers,
+        requester_headers,
+        "LC-004",
+        "DL-004",
+    )
 
-    response = client.post(f"/api/v1/trips/{trip['id']}/start", headers=dispatcher_headers)
+    # Previous vehicle GPS locations must not determine the trip start.
+    _add_ping(db_session, trip["vehicle_id"], lat=1.0, lng=1.0)
+    _add_ping(db_session, trip["vehicle_id"], lat=2.0, lng=2.0)
+
+    response = client.post(
+        f"/api/v1/trips/{trip['id']}/start",
+        headers=dispatcher_headers,
+    )
+
+    assert response.status_code == 200
     body = response.json()
-    assert body["start_lat"] == pytest.approx(newest.lat)
-    assert body["start_lng"] == pytest.approx(newest.lng)
+
+    # The trip starts from the source coordinates of the request.
+    assert body["start_lat"] == pytest.approx(0.5)
+    assert body["start_lng"] == pytest.approx(0.5)
 
 
 def test_start_rejects_non_approved_trip(client, dispatcher_headers, requester_headers, db_session):
@@ -172,8 +219,8 @@ def test_complete_calculates_distance_from_trip_points_and_frees_resources(
     assert body["end_lng"] == pytest.approx(10.01)
 
     expected_distance = calculate_route_distance_km(
-        [(10.0, 10.0), (10.01, 10.0), (10.02, 10.01)]
-    )
+    [(10.01, 10.0), (10.02, 10.01)]
+     )
     assert body["distance_km"] == pytest.approx(expected_distance, rel=1e-4)
     assert body["distance_km"] > 0
 
@@ -218,14 +265,45 @@ def test_complete_nonexistent_trip_404(client, dispatcher_headers):
 def test_complete_rejects_already_completed_trip(
     client, dispatcher_headers, requester_headers, db_session
 ):
-    trip = _create_approved_trip(client, dispatcher_headers, requester_headers, "LC-013", "DL-013")
-    _add_ping(db_session, trip["vehicle_id"], lat=1.0, lng=1.0)
-    client.post(f"/api/v1/trips/{trip['id']}/start", headers=dispatcher_headers)
+    trip = _create_approved_trip(
+        client,
+        dispatcher_headers,
+        requester_headers,
+        "LC-013",
+        "DL-013",
+    )
 
-    first = client.post(f"/api/v1/trips/{trip['id']}/complete", headers=dispatcher_headers)
+    _add_ping(
+        db_session,
+        trip["vehicle_id"],
+        lat=1.0,
+        lng=1.0,
+    )
+
+    client.post(
+        f"/api/v1/trips/{trip['id']}/start",
+        headers=dispatcher_headers,
+    )
+
+    # GPS point recorded after the trip starts.
+    _add_ping(
+        db_session,
+        trip["vehicle_id"],
+        lat=1.01,
+        lng=1.01,
+        trip_id=trip["id"],
+    )
+
+    first = client.post(
+        f"/api/v1/trips/{trip['id']}/complete",
+        headers=dispatcher_headers,
+    )
     assert first.status_code == 200
 
-    second = client.post(f"/api/v1/trips/{trip['id']}/complete", headers=dispatcher_headers)
+    second = client.post(
+        f"/api/v1/trips/{trip['id']}/complete",
+        headers=dispatcher_headers,
+    )
     assert second.status_code == 400
 
 
