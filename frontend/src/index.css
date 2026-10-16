@@ -1790,6 +1790,8 @@ textarea:focus {
 }
 
 .landing-feature-card {
+  display: flex;
+flex-direction: column;
   min-width: 0;
   padding: 25px 22px 24px;
   border: 1px solid var(--landing-border);
@@ -1802,9 +1804,9 @@ textarea:focus {
 }
 
 .landing-feature-card:hover {
-  transform: translateY(-4px);
-  border-color: #c5d8ff;
-  box-shadow: 0 13px 32px rgb(16 36 62 / 7%);
+  transform: translateY(-5px);
+  border-color: #b8d0ff;
+  box-shadow: 0 16px 36px rgb(16 36 62 / 10%);
 }
 
 .landing-feature-icon {
@@ -1830,25 +1832,27 @@ textarea:focus {
 }
 
 .landing-feature-card h3 {
-  margin: 22px 0 10px;
+  margin: 18px 0 10px;
   color: #20324a;
-  font-size: 16px;
-  line-height: 1.4;
+  font-size: 17px;
+  line-height: 1.45;
+  font-weight: 600;
 }
 
 .landing-feature-card p {
-  min-height: 91px;
+  min-height: 0;
   margin: 0;
   color: var(--landing-muted);
-  font-size: 12px;
-  line-height: 1.85;
+  font-size: 13px;
+  line-height: 1.75;
 }
 
 .landing-feature-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-top: 18px;
+  margin-top: auto;
+  padding-top: 18px;
   color: var(--landing-blue);
   font-size: 11px;
   font-weight: 800;
@@ -1902,16 +1906,72 @@ textarea:focus {
   background: #edf3ff;
 }
 
+
 .landing-contact {
-  width: min(1180px, calc(100% - 48px));
-  margin: 0 auto;
-  padding: 34px 0 65px;
+  width: 100%;
+  margin: 0;
+  padding: 80px 5% 65px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 30px;
-  border-bottom: 1px solid var(--landing-border);
+  gap: 40px;
+  background: linear-gradient(120deg, #1764e8 0%, #0b55d9 100%);
+  color: #ffffff;
+  border-bottom: none;
+  box-sizing: border-box;
 }
+
+.landing-contact > div {
+  max-width: 850px;
+}
+
+.landing-contact .landing-eyebrow {
+  color: #dbeafe;
+}
+
+.landing-contact h2 {
+  color: #ffffff;
+}
+
+.landing-contact p {
+  color: #eaf2ff;
+  line-height: 1.8;
+}
+
+.landing-contact a {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 17px 30px;
+  border: 1px solid #ffffff;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #1559d6;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 180ms ease, transform 180ms ease;
+}
+
+.landing-contact a:hover {
+  background: #edf4ff;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 640px) {
+  .landing-contact {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 48px 6% 40px;
+    gap: 26px;
+  }
+
+  .landing-contact a {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
 
 .landing-contact > div {
   max-width: 690px;

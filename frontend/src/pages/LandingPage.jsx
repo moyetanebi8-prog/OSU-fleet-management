@@ -1,28 +1,38 @@
 
 import { Link } from "react-router-dom";
 import osuFleetLogo from "../Assets/osu-fleet-logo.png";
+import {
+  CarFront,
+  CalendarDays,
+  UserRound,
+  MapPin,
+} from "lucide-react";
 
 const features = [
   {
-    icon: "🚘",
+    id: "vehicle-management",
+    icon: CarFront,
     title: "Vehicle Management",
     description:
       "Keep vehicle information organized and make fleet resources easier to manage.",
   },
   {
-    icon: "🗓️",
+    id: "trip-management",
+    icon: CalendarDays,
     title: "Trip Management",
     description:
       "Submit transportation requests and follow the trip approval and assignment process.",
   },
   {
-    icon: "🧑‍✈️",
+    id: "driver-management",
+    icon: UserRound,
     title: "Driver Management",
     description:
       "Organize driver information and support clear vehicle and trip assignments.",
   },
   {
-    icon: "📍",
+    id: "gps-tracking",
+    icon: MapPin,
     title: "GPS Fleet Tracking",
     description:
       "View available fleet tracking information and monitor vehicle locations when GPS data is available.",
@@ -172,15 +182,27 @@ export default function LandingPage() {
 
         <div className="landing-feature-grid">
           {features.map((feature, index) => (
-            <article className="landing-feature-card" key={feature.title}>
-              <div className={`landing-feature-icon landing-feature-icon-${index}`}>
-                <span aria-hidden="true">{feature.icon}</span>
-              </div>
+           <article
+         className="landing-feature-card"
+         key={feature.title}
+         id={feature.id}
+         >
+         <div className={`landing-feature-icon landing-feature-icon-${index}`}>
+        <feature.icon
+         size={24}
+         strokeWidth={1.8}
+         color="#2563eb"
+         aria-hidden="true"
+        />
+        </div>
               <h3>{feature.title}</h3>
               <p>{feature.description}</p>
-              <a href="#about" className="landing-feature-link">
-                Learn more <span aria-hidden="true">→</span>
-              </a>
+              <a
+       href={`#${feature.id}`}
+      className="landing-feature-link"
+      >
+      Learn more <span aria-hidden="true">→</span>
+      </a>
             </article>
           ))}
         </div>
