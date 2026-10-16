@@ -19,16 +19,9 @@ import TripsPage from "../pages/dispatcher/TripsPage";
 import VehiclesPage from "../pages/dispatcher/VehiclesPage";
 import EmployeesPage from "../pages/admin/EmployeesPage";
 import UsersPage from "../pages/admin/UsersPage";
-import { useAuth } from "../context/AuthContext";
 import ProtectedRoute from "./ProtectedRoute";
+import LandingPage from "../pages/LandingPage";
 
-function HomeRedirect() {
-  const { isAuthenticated, user, loading } = useAuth();
-  if (loading) return null;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  const roleHome = { admin: "/admin", dispatcher: "/dispatcher", requester: "/requester" };
-  return <Navigate to={roleHome[user.role] || "/requester"} replace />;
-}
 
 export default function AppRouter() {
   return (
@@ -118,7 +111,7 @@ export default function AppRouter() {
         </Route>
       </Route>
 
-      <Route path="/" element={<HomeRedirect />} />
+      <Route path="/" element={<LandingPage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

@@ -1357,3 +1357,953 @@ textarea:focus {
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+/* =========================================================
+   OSU Fleet Management System — Public Landing Page
+   File: frontend/src/pages/LandingPage.css
+   ========================================================= */
+
+.landing-page {
+  --landing-navy: #10243e;
+  --landing-blue: #2563eb;
+  --landing-text: #18283d;
+  --landing-muted: #65748a;
+  --landing-border: #e3eaf2;
+  background: #ffffff;
+  color: var(--landing-text);
+  font-family: inherit;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.landing-page *,
+.landing-page *::before,
+.landing-page *::after {
+  box-sizing: border-box;
+}
+
+.landing-page a {
+  text-decoration: none;
+}
+
+.landing-header {
+  width: min(1180px, calc(100% - 48px));
+  min-height: 82px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+}
+
+.landing-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--landing-navy);
+  flex-shrink: 0;
+}
+
+.landing-brand-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: var(--landing-blue);
+  color: white;
+  font-size: 23px;
+  font-weight: 800;
+  box-shadow: 0 6px 16px rgb(37 99 235 / 20%);
+}
+
+.landing-brand strong,
+.landing-brand small {
+  display: block;
+}
+
+.landing-brand strong {
+  font-size: 16px;
+  letter-spacing: -0.3px;
+}
+
+.landing-brand small {
+  color: var(--landing-muted);
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.landing-nav {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.landing-nav > a:not(.landing-nav-button) {
+  color: #526176;
+  font-size: 13px;
+  font-weight: 600;
+  transition: color 160ms ease;
+}
+
+.landing-nav > a:not(.landing-nav-button):hover {
+  color: var(--landing-blue);
+}
+
+.landing-nav-button,
+.landing-primary-button,
+.landing-secondary-button,
+.landing-about-button,
+.landing-contact-button {
+  min-height: 44px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  transition:
+    transform 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.landing-nav-button {
+  padding: 0 21px;
+  color: #ffffff;
+  background: var(--landing-blue);
+}
+
+.landing-nav-button:hover,
+.landing-primary-button:hover,
+.landing-contact-button:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.landing-hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 515px;
+  padding: 74px max(24px, calc((100% - 1180px) / 2)) 80px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+  align-items: center;
+  gap: 45px;
+  background:
+    radial-gradient(ellipse at 83% 45%, rgb(37 99 235 / 24%), transparent 37%),
+    linear-gradient(115deg, #10243e 0%, #132d4c 57%, #163b65 100%);
+  color: #ffffff;
+}
+
+.landing-hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 610px;
+}
+
+.landing-eyebrow {
+  display: inline-block;
+  color: #3979e8;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.8px;
+  line-height: 1.6;
+}
+
+.landing-hero .landing-eyebrow {
+  color: #9dc1ff;
+}
+
+.landing-hero h1 {
+  margin: 19px 0 20px;
+  color: #ffffff;
+  font-size: clamp(36px, 4.3vw, 57px);
+  font-weight: 800;
+  line-height: 1.13;
+  letter-spacing: -2px;
+}
+
+.landing-hero h1 span {
+  display: block;
+  color: #91baff;
+}
+
+.landing-hero-content > p {
+  max-width: 535px;
+  margin: 0;
+  color: #c6d4e7;
+  font-size: 15px;
+  line-height: 1.9;
+}
+
+.landing-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 13px;
+  margin-top: 29px;
+}
+
+.landing-primary-button {
+  padding: 0 21px;
+  background: var(--landing-blue);
+  color: #ffffff;
+  box-shadow: 0 9px 25px rgb(0 0 0 / 15%);
+}
+
+.landing-secondary-button {
+  padding: 0 19px;
+  border: 1px solid rgb(255 255 255 / 24%);
+  color: #ffffff;
+  background: rgb(255 255 255 / 4%);
+}
+
+.landing-secondary-button:hover {
+  background: rgb(255 255 255 / 10%);
+}
+
+.landing-trust-note {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 25px;
+  color: #c4d3e6;
+  font-size: 11px;
+}
+
+.landing-trust-note > span {
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: rgb(34 197 94 / 18%);
+  color: #86efac;
+  font-weight: 800;
+}
+
+.landing-hero-visual {
+  position: relative;
+  width: 100%;
+  max-width: 490px;
+  justify-self: end;
+  padding: 15px 0 25px;
+}
+
+.landing-visual-glow {
+  position: absolute;
+  inset: 5% -5% 0;
+  background: #3979e8;
+  filter: blur(65px);
+  opacity: 0.2;
+  border-radius: 50%;
+}
+
+.landing-visual-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 50%);
+  border-radius: 18px;
+  background: #ffffff;
+  color: var(--landing-text);
+  box-shadow: 0 28px 65px rgb(0 0 0 / 25%);
+  transform: rotate(1deg);
+}
+
+.landing-visual-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 19px 21px 13px;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+
+.landing-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+}
+
+.landing-visual-menu {
+  margin-left: auto;
+  font-size: 17px;
+  letter-spacing: 2px;
+}
+
+.landing-route-art {
+  position: relative;
+  margin: 0 13px;
+  overflow: hidden;
+  border-radius: 12px;
+  background:
+    linear-gradient(35deg, transparent 45%, #e7eef7 45%, #e7eef7 47%, transparent 47%),
+    linear-gradient(145deg, transparent 30%, #edf3fa 30%, #edf3fa 33%, transparent 33%),
+    #f5f8fc;
+}
+
+.landing-route-art svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.landing-map-label {
+  position: absolute;
+  padding: 7px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  background: #ffffff;
+  box-shadow: 0 3px 12px rgb(15 23 42 / 8%);
+  color: #334155;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.landing-map-label-one {
+  top: 19%;
+  left: 12%;
+}
+
+.landing-map-label-two {
+  right: 8%;
+  bottom: 14%;
+}
+
+.landing-visual-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 17px 20px;
+}
+
+.landing-visual-footer > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.landing-footer-icon {
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  border-radius: 9px;
+  background: #eaf1ff;
+  color: #2563eb;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.landing-visual-footer small,
+.landing-visual-footer strong {
+  display: block;
+}
+
+.landing-visual-footer small {
+  color: #64748b;
+  font-size: 10px;
+}
+
+.landing-visual-footer strong {
+  margin-top: 3px;
+  color: #1e293b;
+  font-size: 11px;
+}
+
+.landing-status-pill {
+  padding: 7px 9px;
+  border-radius: 6px;
+  background: #ecfdf5;
+  color: #15803d;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.landing-floating-badge {
+  position: absolute;
+  right: -14px;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 13px 16px;
+  border: 1px solid #e6edf5;
+  border-radius: 11px;
+  background: #ffffff;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 15%);
+  color: #26364a;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.landing-floating-badge > span {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.landing-features {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 86px 0 91px;
+}
+
+.landing-section-heading {
+  max-width: 610px;
+  margin: 0 auto 43px;
+  text-align: center;
+}
+
+.landing-section-heading h2,
+.landing-about h2,
+.landing-contact h2 {
+  margin: 12px 0;
+  color: var(--landing-navy);
+  font-size: clamp(25px, 3vw, 35px);
+  line-height: 1.25;
+  letter-spacing: -0.8px;
+}
+
+.landing-section-heading p,
+.landing-about p,
+.landing-contact p {
+  color: var(--landing-muted);
+  font-size: 14px;
+  line-height: 1.85;
+}
+
+.landing-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 19px;
+}
+
+.landing-feature-card {
+  min-width: 0;
+  padding: 25px 22px 24px;
+  border: 1px solid var(--landing-border);
+  border-radius: 13px;
+  background: #ffffff;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.landing-feature-card:hover {
+  transform: translateY(-4px);
+  border-color: #c5d8ff;
+  box-shadow: 0 13px 32px rgb(16 36 62 / 7%);
+}
+
+.landing-feature-icon {
+  display: grid;
+  place-items: center;
+  width: 49px;
+  height: 49px;
+  border-radius: 12px;
+  background: #edf3ff;
+  font-size: 23px;
+}
+
+.landing-feature-icon-1 {
+  background: #fff7e6;
+}
+
+.landing-feature-icon-2 {
+  background: #e8f9f0;
+}
+
+.landing-feature-icon-3 {
+  background: #f0eaff;
+}
+
+.landing-feature-card h3 {
+  margin: 22px 0 10px;
+  color: #20324a;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.landing-feature-card p {
+  min-height: 91px;
+  margin: 0;
+  color: var(--landing-muted);
+  font-size: 12px;
+  line-height: 1.85;
+}
+
+.landing-feature-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  color: var(--landing-blue);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.landing-about {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto 76px;
+  padding: 41px 45px;
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 26px;
+  border: 1px solid #e2eaf4;
+  border-radius: 17px;
+  background: #f7f9fd;
+}
+
+.landing-about-mark {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  background: #e2ebff;
+  color: #1d4ed8;
+  font-size: 21px;
+  font-weight: 900;
+}
+
+.landing-about h2 {
+  max-width: 620px;
+  font-size: 25px;
+}
+
+.landing-about p {
+  max-width: 670px;
+  margin-bottom: 0;
+  font-size: 12px;
+}
+
+.landing-about-button {
+  padding: 0 18px;
+  border: 1px solid #c9d8f3;
+  color: #1d4ed8;
+  background: #ffffff;
+  white-space: nowrap;
+}
+
+.landing-about-button:hover {
+  background: #edf3ff;
+}
+
+.landing-contact {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 34px 0 65px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 30px;
+  border-bottom: 1px solid var(--landing-border);
+}
+
+.landing-contact > div {
+  max-width: 690px;
+}
+
+.landing-contact h2 {
+  font-size: 27px;
+}
+
+.landing-contact p {
+  margin-bottom: 0;
+  font-size: 12px;
+}
+
+.landing-contact-button {
+  flex-shrink: 0;
+  padding: 0 23px;
+  background: var(--landing-blue);
+  color: #ffffff;
+}
+
+.landing-footer {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 24px 0 29px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 20px;
+}
+
+.landing-footer-brand {
+  color: var(--landing-navy);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.landing-footer p,
+.landing-footer > span {
+  margin: 0;
+  color: #7b8797;
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+.landing-footer p {
+  text-align: right;
+}
+
+.landing-footer > span {
+  grid-column: 1 / -1;
+}
+
+/* Tablet */
+@media (max-width: 960px) {
+  .landing-nav {
+    gap: 17px;
+  }
+
+  .landing-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(290px, 0.8fr);
+    gap: 25px;
+    padding-top: 65px;
+    padding-bottom: 70px;
+  }
+
+  .landing-hero h1 {
+    font-size: clamp(34px, 4.6vw, 47px);
+    letter-spacing: -1.5px;
+  }
+
+  .landing-floating-badge {
+    right: -5px;
+  }
+
+  .landing-feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .landing-feature-card p {
+    min-height: auto;
+  }
+
+  .landing-about {
+    grid-template-columns: 65px minmax(0, 1fr);
+    padding: 32px;
+  }
+
+  .landing-about-mark {
+    width: 62px;
+    height: 62px;
+  }
+
+  .landing-about-button {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .landing-header {
+    width: calc(100% - 32px);
+    min-height: 72px;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 0;
+  }
+
+  .landing-brand-icon {
+    width: 39px;
+    height: 39px;
+  }
+
+  .landing-brand strong {
+    font-size: 14px;
+  }
+
+  .landing-brand small {
+    font-size: 11px;
+  }
+
+  .landing-nav {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 6px;
+  }
+
+  .landing-nav > a:not(.landing-nav-button) {
+    font-size: 11px;
+  }
+
+  .landing-nav-button {
+    min-height: 37px;
+    padding: 0 13px;
+    font-size: 11px;
+  }
+
+  .landing-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 30px;
+    padding: 52px 22px 65px;
+  }
+
+  .landing-hero h1 {
+    font-size: clamp(36px, 9vw, 48px);
+    letter-spacing: -1.5px;
+  }
+
+  .landing-hero-content > p {
+    font-size: 13px;
+  }
+
+  .landing-hero-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .landing-primary-button,
+  .landing-secondary-button {
+    width: 100%;
+    min-height: 47px;
+  }
+
+  .landing-hero-visual {
+    width: calc(100% - 6px);
+    max-width: 440px;
+    justify-self: center;
+  }
+
+  .landing-floating-badge {
+    right: -4px;
+    font-size: 10px;
+  }
+
+  .landing-features {
+    width: calc(100% - 32px);
+    padding: 64px 0;
+  }
+
+  .landing-section-heading {
+    margin-bottom: 29px;
+  }
+
+  .landing-section-heading h2,
+  .landing-about h2,
+  .landing-contact h2 {
+    font-size: 26px;
+  }
+
+  .landing-feature-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 13px;
+  }
+
+  .landing-feature-card {
+    padding: 23px;
+  }
+
+  .landing-feature-card h3 {
+    margin-top: 16px;
+  }
+
+  .landing-feature-card p {
+    font-size: 13px;
+  }
+
+  .landing-about {
+    width: calc(100% - 32px);
+    margin-bottom: 48px;
+    padding: 25px 21px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 17px;
+  }
+
+  .landing-about-button {
+    grid-column: 1;
+    justify-self: stretch;
+  }
+
+  .landing-contact {
+    width: calc(100% - 32px);
+    align-items: stretch;
+    flex-direction: column;
+    gap: 21px;
+    padding: 15px 0 42px;
+  }
+
+  .landing-contact-button {
+    align-self: flex-start;
+  }
+
+  .landing-footer {
+    width: calc(100% - 32px);
+    grid-template-columns: minmax(0, 1fr);
+    padding: 23px 0;
+  }
+
+  .landing-footer p {
+    text-align: left;
+  }
+
+  .landing-footer > span {
+    grid-column: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-page *,
+  .landing-page *::before,
+  .landing-page *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
+
+
+/* System access and registration section */
+.landing-access {
+  padding: 80px 7%;
+  background: #f8fafc;
+}
+
+.landing-access-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  max-width: 1120px;
+  margin: 40px auto 0;
+}
+
+.landing-access-card {
+  padding: 28px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.landing-access-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 20px;
+  background: #eff6ff;
+  border-radius: 14px;
+  font-size: 26px;
+}
+
+.landing-access-card h3 {
+  margin: 0 0 12px;
+  color: #0f172a;
+  font-size: 20px;
+}
+
+.landing-access-card p {
+  margin: 0 0 20px;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.landing-access-card > span {
+  display: inline-block;
+  padding: 7px 12px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.landing-registration-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  max-width: 1120px;
+  margin: 32px auto 0;
+  padding: 28px;
+  background: #eaf2ff;
+  border: 1px solid #dbeafe;
+  border-radius: 18px;
+}
+
+.landing-registration-note h3 {
+  margin: 0 0 8px;
+  color: #0f172a;
+}
+
+.landing-registration-note p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.7;
+}
+
+@media (max-width: 900px) {
+  .landing-access-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .landing-access {
+    padding: 56px 20px;
+  }
+
+  .landing-access-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-top: 28px;
+  }
+
+  .landing-access-card {
+    padding: 22px;
+  }
+
+  .landing-registration-note {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 22px;
+  }
+
+  .landing-registration-note .landing-primary-button {
+    align-self: flex-start;
+  }
+}
+/* OSU Fleet Management System header logo */
+.landing-brand-logo {
+  display: block;
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.landing-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+@media (max-width: 600px) {
+  .landing-brand-logo {
+    width: 42px;
+    height: 42px;
+  }
+
+  .landing-brand {
+    gap: 8px;
+  }
+}
