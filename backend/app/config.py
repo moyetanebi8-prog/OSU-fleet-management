@@ -42,9 +42,9 @@ class Settings(BaseSettings):
 
     # --- Email (SMTP) ---
     # Used for driver assignment notifications, traveler/requester
-    # notifications, and employee-onboarding emails. If SMTP_HOST is left
-    # empty, email_service.py raises a clear, loud error on send rather
-    # than pretending to succeed - see app/services/email_service.py.
+    # notifications, and employee-onboarding emails. Disabled by default;
+    # set EMAIL_ENABLED=true to enable delivery.
+    EMAIL_ENABLED: bool = False
     SMTP_HOST: str = ""
     SMTP_PORT: int = 587
     SMTP_USERNAME: str = ""

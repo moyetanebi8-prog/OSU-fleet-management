@@ -18,7 +18,8 @@ from app.services import email_service
 def _stub_email_sending():
     """Overrides conftest.py's autouse stub - a no-op so these tests see
     the real email_service.send_email."""
-    yield
+    with patch.object(email_service.settings, "EMAIL_ENABLED", True):
+        yield
 
 
 def test_send_email_raises_when_smtp_not_configured():
@@ -28,6 +29,18 @@ def test_send_email_raises_when_smtp_not_configured():
     with patch.object(email_service.settings, "SMTP_HOST", ""):
         with pytest.raises(email_service.EmailNotConfiguredError):
             email_service.send_email(to_email="someone@example.com", subject="Hi", body="Test")
+
+
+def test_send_email_does_not_connect_when_email_is_disabled():
+    with patch.object(email_service.settings, "EMAIL_ENABLED", False), patch.object(
+        email_service.settings, "SMTP_HOST", "smtp.example.com"
+    ), patch("smtplib.SMTP") as mock_smtp:
+        with pytest.raises(email_service.EmailNotConfiguredError, match="disabled"):
+            email_service.send_email(
+                to_email="someone@example.com", subject="Hi", body="Test"
+            )
+
+    mock_smtp.assert_not_called()
 
 
 def test_send_email_uses_smtp_correctly_when_configured():
@@ -87,3 +100,24 @@ def test_send_email_skips_login_when_no_username_configured():
 
         mock_smtp_instance.login.assert_not_called()
         mock_smtp_instance.starttls.assert_not_called()
+
+
+def test_send_email_requires_from_email_when_host_is_set():
+    """A configured SMTP host is not enough by itself; the sender address
+    must also be set or the message is malformed and will fail at send time."""
+    with patch.object(email_service.settings, "SMTP_HOST", "smtp.example.com"), patch.object(
+        email_service.settings, "SMTP_FROM_EMAIL", ""
+    ):
+        with pytest.raises(email_service.EmailNotConfiguredError, match="SMTP_FROM_EMAIL"):
+            email_service.send_email(to_email="user@example.com", subject="Hi", body="Test")
+
+
+def test_send_email_requires_password_when_username_present():
+    """Gmail app-password flows require a non-empty password whenever a username is provided."""
+    with patch.object(email_service.settings, "SMTP_HOST", "smtp.example.com"), patch.object(
+        email_service.settings, "SMTP_USERNAME", "user@example.com"
+    ), patch.object(email_service.settings, "SMTP_PASSWORD", ""), patch.object(
+        email_service.settings, "SMTP_FROM_EMAIL", "no-reply@example.com"
+    ):
+        with pytest.raises(email_service.EmailNotConfiguredError, match="SMTP_PASSWORD"):
+            email_service.send_email(to_email="user@example.com", subject="Hi", body="Test")

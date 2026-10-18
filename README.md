@@ -62,7 +62,7 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 cp .env.example backend/.env
 ```
 
-Edit `backend/.env` and set a real `SECRET_KEY` (never commit this file).
+Edit `backend/.env` and set a real `SECRET_KEY` (never commit this file). Email delivery is disabled by default. To enable it later, set `EMAIL_ENABLED=true` and configure `SMTP_HOST`, `SMTP_USERNAME`, `SMTP_PASSWORD`, and `SMTP_FROM_EMAIL`; if you use Gmail, generate an App Password and paste it with no spaces.
 
 ## 3. Backend Setup
 
