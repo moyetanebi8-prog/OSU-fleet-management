@@ -64,7 +64,7 @@ export default function LandingPage() {
           <a href="#about">About</a>
           <a href="#contact">Help & Contact</a>
           <Link to="/login" className="landing-nav-button">
-            Sign In
+            Request a Trip
           </Link>
         </nav>
       </header>
